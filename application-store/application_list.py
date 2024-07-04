@@ -1,7 +1,7 @@
 import requests
 
 def storeList(GIT_API_URL,GIT_ACCESS_TOKEN):
-    url = f"{GIT_API_URL}/groups/application-store1/projects"
+    url = f"{GIT_API_URL}/groups/application-store/projects"
     headers = {
         'Private-Token': GIT_ACCESS_TOKEN,
     }

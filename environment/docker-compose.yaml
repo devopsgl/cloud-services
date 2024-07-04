@@ -7,8 +7,8 @@ services:
       context: ../application-store
       dockerfile: Dockerfile
     environment:
-      GIT_API_URL: "http://localhost/api/v4/"
-      GIT_ACCESS_TOKEN: "glpat-ACTsyAbmCHCDdm9kKAyq"
+      GIT_API_URL: "http://192.168.1.38/api/v4/"
+      GIT_ACCESS_TOKEN: "glpat-X5heQiKhRyaRyKTFdVfZ"
       SERVE_PORT: "8084"
     command: python3 main.py
     ports:
@@ -19,7 +19,7 @@ services:
       context: ../groups
       dockerfile: Dockerfile
     environment:
-      GIT_API_URL: "http://localhost/api/v4/"
+      GIT_API_URL: "http://192.168.1.38/api/v4/"
       GIT_ACCESS_TOKEN: "glpat-ACTsyAbmCHCDdm9kKAyq"
       SERVE_PORT: "8080"
     command: python3 main.py
