@@ -1,7 +1,7 @@
 import requests
 from flask import Flask, jsonify, Response
-import yaml
-
+from ruamel.yaml import YAML
+import sys
 def getValues(GIT_API_URL,GIT_ACCESS_TOKEN,application_id,application_tag):
     print("selam")
     # GitLab erişim tokenı ve proje bilgileri
@@ -18,15 +18,15 @@ def getValues(GIT_API_URL,GIT_ACCESS_TOKEN,application_id,application_tag):
         'PRIVATE-TOKEN': GIT_ACCESS_TOKEN
     }
     response = requests.get(url, headers=headers)
-
+    yaml = YAML()
+    yaml.preserve_quotes =True
     # Yanıtı kontrol etme ve dosya içeriğini yazdırma
     if response.status_code == 200:
-        file_content = response.text
+        yaml_content=response.text
         try:
-            yaml_content = Response(file_content,mimetype='application/x-yaml')
-            return yaml_content
+            return Response(yaml_content,mimetype='text/plain;charset=utf-8')
         except yaml.YAMLError as exc:
             print(f"YAML parsing error: {exc}")
-            return None        
+            return None
     else:
         print(f"Error: {response.status_code}, {response.text}")
