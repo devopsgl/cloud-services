@@ -1,8 +1,11 @@
 import os
-from flask import Flask
+from flask import Flask, request
 from application_list import storeList
 from get_values import getValues
+from put_values import putValues
 from flask_cors import CORS
+import requests
+
 GIT_API_URL = os.getenv('GIT_API_URL', 'no url') 
 GIT_ACCESS_TOKEN = os.getenv('GIT_ACCESS_TOKEN', 'no token') 
 
@@ -18,10 +21,13 @@ def getList():
 def getValuesFile(application_id,application_tag): 
     return getValues(GIT_API_URL,GIT_ACCESS_TOKEN,application_id,application_tag)
 
-#localhost:8080?repositoryUrl=3333&repositoryTag=v2.33&userGroupId=1234 
 @app.route('/application', methods=['PUT'])
-ef putApplication(): 
-    return putValues(GIT_API_URL,GIT_ACCESS_TOKEN)
+def putApplication(): 
+	repository_id = request.args.get('repositoryId')
+	repository_tag = request.args.get('repositoryTag')
+	user_group_id = request.args.get('userGroupId')
+	service_name = request.args.get('serviceName')
+	return putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repository_id,repository_tag,user_group_id,service_name)
 
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port=os.getenv('SERVE_PORT','8081'))

@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
     environment:
       GIT_API_URL: "http://192.168.1.38/api/v4/"
-      GIT_ACCESS_TOKEN: "glpat-Vqss7YD1cp2chBCS9cTt"
+      GIT_ACCESS_TOKEN: "glpat-eB7RPu-AGxSyeDd3fjyi"
       SERVE_PORT: "8084"
     command: python3 main.py
     ports:
@@ -80,7 +80,7 @@ services:
     - GITLAB_HTTPS=false
     - SSL_SELF_SIGNED=false
 
-    - GITLAB_HOST=localhost
+    - GITLAB_HOST=192.168.1.38
     - GITLAB_PORT=80
     - GITLAB_SSH_PORT=10022
     - GITLAB_RELATIVE_URL_ROOT=
