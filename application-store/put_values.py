@@ -44,31 +44,21 @@ def putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repositoryId,repository_tag,user_grou
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-        print("Export edilen dosya /tmp dizinine kaydedildi.")
+        print("Export edilen dosya /tmp dizinine kaydedildi.",flush=True)
         with open(f'/tmp/{serviceName}.tar.gz', 'rb') as file:
             files = {
                 'file': file
             }
-            response = requests.post(f"{GIT_API_URL}/projects/import", headers=headers, files=files)
-
-        if response.status_code == 201:
-            print("Proje başarıyla yüklendi.")
-        else:
-            print(f"Proje yüklenemedi: {response.status_code} {response.text}")
-
-        # Import işlemini tamamlamak için gerekli parametreleri gönderme
-        data = {
+            data = {
             'namespace': user_group_id,  # Grubun kimliği
             'path': serviceName,  # Yeni proje adı
             'overwrite': 'true'  # Mevcut proje üzerine yazmak için
-        }
+            }   
+            response = requests.post(f"{GIT_API_URL}/projects/import", headers=headers, files=files,data=data)
 
-        response = requests.post(f"{GIT_API_URL}/projects/import", headers=headers, data=data)
-
-        if response.status_code == 202:
-            print("Import işlemi başlatıldı.")
-        else:
-            return f"Import işlemi başlatılamadı: {response.status_code} {response.text}"
+            if response.status_code == 201:
+                return f"Proje başarıyla yüklendi."
+            else:
+                return f"Proje yüklenemedi: {response.status_code} {response.text}"
     else:
-        print(f"Export edilen dosya indirilemedi: {response.status_code} {response.text}")
-        return "Export edilen dosya indirilemedi"
+        return f"Proje yüklenemedi: {response.status_code} {response.text}"
