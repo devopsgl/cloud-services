@@ -22,12 +22,13 @@ def getValuesFile(application_id,application_tag):
     return getValues(GIT_API_URL,GIT_ACCESS_TOKEN,application_id,application_tag)
 
 @app.route('/application', methods=['PUT'])
-def putApplication(): 
+def putApplication():
+	values_content = request.data.decode('utf-8')
 	repository_id = request.args.get('repositoryId')
 	repository_tag = request.args.get('repositoryTag')
 	user_group_id = request.args.get('userGroupId')
 	service_name = request.args.get('serviceName')
-	return putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repository_id,repository_tag,user_group_id,service_name)
+	return putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repository_id,repository_tag,user_group_id,service_name,values_content)
 
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port=os.getenv('SERVE_PORT','8081'))
