@@ -5,7 +5,69 @@ import tempfile
 import shutil
 import uuid
 import base64
+import urllib.parse
+import sys
 from flask import Flask, request, jsonify
+
+# Fonksiyon: Dosya içeriğini okuma
+def read_file_content(file_path):
+    with open(file_path, 'r') as file:
+        return file.read()
+
+# Fonksiyon: Dosyaları ve klasörleri toplayıp, API isteğine hazır hale getirme
+def prepare_actions(base_dir):
+    actions = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_gitlab_path = os.path.relpath(file_path, base_dir).replace('\\', '/')
+            actions.append({
+                #"action": "update",
+                "file_path": file_gitlab_path,
+                "content": read_file_content(file_path)
+            })
+    return actions
+
+# API isteği: Commit oluşturma
+def commit_to_gitlab(GIT_API_URL,project_id, commit_message, actions, access_token):
+    url = f'{GIT_API_URL}projects/{project_id}/repository/commits'
+    headers = {
+        'PRIVATE-TOKEN': access_token,
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'branch': 'main',
+        'commit_message': commit_message,
+        'actions': actions
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 201:
+        print('Commit başarılı!')
+        return "successss"
+    else:
+        print('Commit başarısız:', response.json())
+        return actions
+
+def get_project_id(GIT_API_URL,group_id, project_name, access_token):
+    url = f'{GIT_API_URL}groups/{group_id}/projects'
+    headers = {
+        'PRIVATE-TOKEN': access_token
+    }
+    params = {
+        'search': project_name
+    }
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        projects = response.json()
+        for project in projects:
+            if project['name'] == project_name:
+                return project['id']
+        return None
+    else:
+        print('Proje ID\'si alınamadı:', response.json())
+        return None
+
+
 def putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repositoryId,repository_tag,user_group_id,serviceName,values_content):
     DOWNLOAD_DIR = '/tmp'
 
@@ -82,64 +144,40 @@ def putValues(GIT_API_URL,GIT_ACCESS_TOKEN,repositoryId,repository_tag,user_grou
     )
 
     if new_project_response.status_code != 201:
-        return jsonify({"error": f"Failed to create new project. HTTP Status Code: {new_project_response.text}"}), 500
+        new_project_id=get_project_id(GIT_API_URL,user_group_id,serviceName,GIT_ACCESS_TOKEN)
+        action_state="update"
+    else:
+        new_project_id = new_project_response.json()['id']
+        action_state="create"
 
-    new_project_id = new_project_response.json()['id']
+
 
     # Yeni projeye dosyaları yükleyin
 
     #return f"{extracted_folder_path}"
 
-    def upload_file_to_gitlab(project_id,file_path, gitlab_path):
-        with open(file_path, 'rb') as file:
-            content = base64.b64encode(file.read()).decode('utf-8')
+    actions = prepare_actions(extracted_folder_path)
+    for action in actions:
+        file_path = action["file_path"]
+        file_path= urllib.parse.quote(file_path,safe='')
 
-        url = f"{GIT_API_URL}/api/v4/projects/{project_id}/repository/files/{gitlab_path}"
+        sys.stdout.write(f" {file_path} Hello, World!\n")
+        sys.stdout.flush()
+
+        file_exists_url = f'{GIT_API_URL}/projects/{new_project_id}/repository/files/{file_path}?ref=main'
         headers = {
-            'PRIVATE-TOKEN': GIT_ACCESS_TOKEN,
-            'Content-Type': 'application/json'
+            'PRIVATE-TOKEN': GIT_ACCESS_TOKEN
         }
-        data = {
-            'branch': "main",
-            'content': content,
-            'commit_message': f'Add {gitlab_path}'
-        }
-
-        response = requests.post(url, json=data, headers=headers)
-        if response.status_code == 201:
-            print(f'Successfully uploaded {gitlab_path}')
-        elif response.status_code == 400:
-            print(f'File already exists: {gitlab_path}. Updating file...')
-            response = requests.put(url, json=data, headers=headers)
-            if response.status_code == 200:
-                print(f'Successfully updated {gitlab_path}')
-            else:
-                print(f'Failed to update {gitlab_path}. Response: {response.json()}')
+        response = requests.get(file_exists_url, headers=headers)
+        if response.status_code == 200:
+            action["action"] = "update"
         else:
-            print(f'Failed to upload {gitlab_path}. Response: {response.json()}')
+            action["action"] = "create"
 
+    return commit_to_gitlab(GIT_API_URL,new_project_id, "cloud services", actions, GIT_ACCESS_TOKEN)
 
-    upload_file_to_gitlab(new_project_id,extracted_folder_path,"/")
-
-    def upload_directory_to_gitlab(directory, gitlab_path=''):
-        for root, dirs, files in os.walk(directory):
-            for file_name in files:
-                file_path = os.path.join(root, file_name)
-                relative_path = os.path.relpath(file_path, directory)
-                gitlab_file_path = os.path.join(gitlab_path, relative_path).replace('\\', '/')
-                upload_file_to_gitlab(file_path, gitlab_file_path)
-
-    upload_directory_to_gitlab(extracted_folder_path)
+    
 
 
 
-
-
-    # Geçici dizini silin
-    shutil.rmtree(unique_extract_dir)
-
-    return jsonify({
-        "message": f"New project '{new_project_name}' created successfully.",
-        "extracted_path": extracted_folder_path  # Çıkarılan klasörün yolunu da döndürün
-    }), 201
 
