@@ -18,7 +18,7 @@
 ```bash
 ./restart.sh
 ```
-### Endpoints
+## Endpoints
 
 ### application list
 ```bash
