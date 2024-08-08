@@ -25,12 +25,12 @@
 curl --location 'http://localhost:8081/application/list'
 ```
 
-### get appllication values yaml
+### get application values yaml
 
 ```bash
 curl --location 'http://localhost:8081/application/25/tag/1.0.77'
 ```
-### put appllication values.yaml 
+### put application values.yaml 
 
 ```bash
 curl --location --request PUT 'http://localhost:8081/application?serviceName=redis-test&repositoryId=25&repositoryTag=1.0.77&userGroupId=35' \
