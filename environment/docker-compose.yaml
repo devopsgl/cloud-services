@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
     environment:
       GIT_API_URL: "http://192.168.1.38/api/v4/"
-      GIT_ACCESS_TOKEN: "glpat-ACTsyAbmCHCDdm9kKAyq"
+      GIT_ACCESS_TOKEN: "glpat-eB7RPu-AGxSyeDd3fjyi"
       SERVE_PORT: "8080"
     command: python3 main.py
     ports:
